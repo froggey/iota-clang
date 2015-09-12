@@ -778,6 +778,15 @@ public:
   virtual bool hasFeature(StringRef Feature) const {
     return false;
   }
+
+  // @LOCALMOD-START
+  /// Handle arguments passed to LLVM's option processing.
+  ///
+  /// \return False on error.
+  virtual bool handleLLVMArgs(std::vector<std::string> &Args) {
+    return true;
+  }
+  // @LOCALMOD-END
   
   // \brief Returns maximal number of args passed in registers.
   unsigned getRegParmMax() const {

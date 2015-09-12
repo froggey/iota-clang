@@ -1227,8 +1227,7 @@ def mno_prfchw : Flag<["-"], "mno-prfchw">, Group<m_x86_Features_Group>;
 def mno_rdseed : Flag<["-"], "mno-rdseed">, Group<m_x86_Features_Group>;
 def mno_adx : Flag<["-"], "mno-adx">, Group<m_x86_Features_Group>;
 def mno_sha : Flag<["-"], "mno-sha">, Group<m_x86_Features_Group>;
-def malign_double : Flag<["-"], "malign-double">,  Group<m_x86_Features_Group>; // @LOCALMOD
-def mnoalign_double : Flag<["-"], "mno-align-double">,  Group<m_x86_Features_Group>; // @LOCALMOD
+def malign_double : Flag<["-"], "malign-double">,  Group<m_Group>; // @LOCALMOD
 
 def munaligned_access : Flag<["-"], "munaligned-access">, Group<m_arm_Features_Group>,
   HelpText<"Allow memory accesses to be unaligned (AArch32/AArch64 only)">;

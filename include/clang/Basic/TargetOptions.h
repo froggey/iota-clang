@@ -45,6 +45,12 @@ public:
   /// The list of target specific features to enable or disable -- this should
   /// be a list of strings starting with by '+' or '-'.
   std::vector<std::string> Features;
+
+  // @LOCALMOD-START
+  /// \brief A list of arguments to forward to LLVM's option processing; this
+  /// should only be used for debugging and experimental features.
+  std::vector<std::string> LLVMArgs;
+  // @LOCALMOD-END
 };
 
 }  // end namespace clang

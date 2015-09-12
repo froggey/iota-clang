@@ -3520,19 +3520,16 @@ public:
 
     return X86TargetInfo::validateOperandSize(Constraint, Size);
   }
+
   // @LOCALMOD-START
-  bool handleTargetFeatures(std::vector<std::string> &Features,
-                            DiagnosticsEngine &Diags) override {
+  bool handleLLVMArgs(std::vector<std::string> &Args) override {
     HasAlignedDouble = false;
-    auto it = std::find(Features.begin(), Features.end(), "+align-double");
-    if (it != Features.end()) {
+    auto it = std::find(Args.begin(), Args.end(), "-malign-double");
+    if (it != Args.end()) {
       HasAlignedDouble = true;
-      Features.erase(it);
     }
-
     setDescriptionString();
-
-    return X86TargetInfo::handleTargetFeatures(Features, Diags);
+    return true;
   }
   // @LOCALMOD-END
 };
@@ -7304,6 +7301,11 @@ TargetInfo::CreateTargetInfo(DiagnosticsEngine &Diags,
     Opts->Features.push_back((it->second ? "+" : "-") + it->first().str());
   if (!Target->handleTargetFeatures(Opts->Features, Diags))
     return nullptr;
+
+  // @LOCALMOD-START
+  if (!Target->handleLLVMArgs(Opts->LLVMArgs))
+    return nullptr;
+  // @LOCALMOD-END
 
   return Target.release();
 }
