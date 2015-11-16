@@ -524,18 +524,15 @@ namespace nacltools {
                       const llvm::opt::ArgList &TCArgs,
                       const char *LinkingOutput) const override;
   };
-  class LLVM_LIBRARY_VISIBILITY Link : public Tool  {
+  class LLVM_LIBRARY_VISIBILITY Link : public gnutools::Link  {
   public:
-    Link(const ToolChain &TC) : Tool("NaCl::Link", "linker", TC) {}
-
-    bool hasIntegratedCPP() const override { return false; }
-    bool isLinkJob() const override { return true; }
+    Link(const ToolChain &TC) : gnutools::Link(TC) {}
 
     void ConstructJob(Compilation &C, const JobAction &JA,
-                              const InputInfo &Output,
-                              const InputInfoList &Inputs,
-                              const llvm::opt::ArgList &TCArgs,
-                              const char *LinkingOutput) const override;
+                      const InputInfo &Output,
+                      const InputInfoList &Inputs,
+                      const llvm::opt::ArgList &TCArgs,
+                      const char *LinkingOutput) const override;
   };
 }
 
