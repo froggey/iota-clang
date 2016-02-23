@@ -62,7 +62,6 @@ static CGCXXABI *createCXXABI(CodeGenModule &CGM) {
   switch (CGM.getTarget().getCXXABI().getKind()) {
   case TargetCXXABI::GenericAArch64:
   case TargetCXXABI::GenericARM:
-  case TargetCXXABI::Emscripten: // @LOCALMOD Emscripten
   case TargetCXXABI::iOS:
   case TargetCXXABI::iOS64:
   case TargetCXXABI::GenericMIPS:
@@ -794,14 +793,6 @@ void CodeGenModule::SetLLVMFunctionAttributesForDefinition(const Decl *D,
   unsigned alignment = D->getMaxAlignment() / Context.getCharWidth();
   if (alignment)
     F->setAlignment(alignment);
-
-  // @LOCALMOD-START Emscripten
-  if (getTarget().getCXXABI().arePointersToMemberFunctionsAligned()) {
-    // C++ ABI requires 2-byte alignment for member functions.
-    if (F->getAlignment() < 2 && isa<CXXMethodDecl>(D))
-      F->setAlignment(2);
-  }
-  // @LOCALMOD-END Emscripten
 }
 
 void CodeGenModule::SetCommonAttributes(const Decl *D,
