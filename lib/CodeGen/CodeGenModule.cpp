@@ -793,6 +793,12 @@ void CodeGenModule::SetLLVMFunctionAttributesForDefinition(const Decl *D,
   unsigned alignment = D->getMaxAlignment() / Context.getCharWidth();
   if (alignment)
     F->setAlignment(alignment);
+
+  if (getTarget().getCXXABI().arePointersToMemberFunctionsAligned()) {
+    // C++ ABI requires 2-byte alignment for member functions.
+    if (F->getAlignment() < 2 && isa<CXXMethodDecl>(D))
+      F->setAlignment(2);
+  }
 }
 
 void CodeGenModule::SetCommonAttributes(const Decl *D,
