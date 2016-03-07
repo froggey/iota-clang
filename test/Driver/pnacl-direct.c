@@ -30,7 +30,7 @@
 // CHECK-LE32: "-L{{.*}}{{/|\\\\}}..{{/|\\\\}}le32-nacl{{/|\\\\}}lib"
 // CHECK-LE32: "-L{{.*}}{{/|\\\\}}..{{/|\\\\}}le32-nacl{{/|\\\\}}usr{{/|\\\\}}lib"
 // CHECK-LE32: "-Lfoo{{/|\\\\}}lib{{/|\\\\}}le32-nacl"
-// CHECK-LE32: "-plugin" "{{.*}}{{/|\\\\}}..{{/|\\\\}}lib{{/|\\\\}}LLVMgold.so"
+// CHECK-LE32: "-plugin" "{{.*}}{{/|\\\\}}..{{/|\\\\}}lib{{/|\\\\}}LLVMgold{{.so|.dll|.dylib}}"
 // CHECK-LE32: "-plugin-opt=emit-llvm"
 // CHECK-LE32: "-plugin-opt=mtriple=le32-unknown-nacl"
 // CHECK-LE32-NOT: -lpthread
@@ -67,7 +67,7 @@
 // CHECK-LE32-CXX: "sjlj_eh_redirect.bc"
 // CHECK-LE32-CXX: "-L{{.*}}{{/|\\\\}}..{{/|\\\\}}le32-nacl{{/|\\\\}}lib"
 // CHECK-LE32-CXX: "-L{{.*}}{{/|\\\\}}..{{/|\\\\}}le32-nacl{{/|\\\\}}usr{{/|\\\\}}lib"
-// CHECK-LE32-CXX: "-plugin" "{{.*}}{{/|\\\\}}..{{/|\\\\}}lib{{/|\\\\}}LLVMgold.so"
+// CHECK-LE32-CXX: "-plugin" "{{.*}}{{/|\\\\}}..{{/|\\\\}}lib{{/|\\\\}}LLVMgold{{.so|.dll|.dylib}}"
 // CHECK-LE32-CXX: "-plugin-opt=emit-llvm"
 // CHECK-LE32-CXX: "-plugin-opt=mtriple=le32-unknown-nacl"
 // CHECK-LE32-CXX: "-plugin-opt=-enable-pnacl-sjlj-eh"
