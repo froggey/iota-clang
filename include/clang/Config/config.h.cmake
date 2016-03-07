@@ -26,6 +26,9 @@
 /* Define if we have libxml2 */
 #cmakedefine CLANG_HAVE_LIBXML ${CLANG_HAVE_LIBXML}
 
+/* Define to the extension used for shared libraries, say, ".so". */
+#cmakedefine LTDL_SHLIB_EXT "${LTDL_SHLIB_EXT}"
+
 /* The LLVM product name and version */
 #define BACKEND_PACKAGE_STRING "${BACKEND_PACKAGE_STRING}"
 

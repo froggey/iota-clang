@@ -345,6 +345,10 @@ public:
   virtual bool
   AddFastMathRuntimeIfAvailable(const llvm::opt::ArgList &Args,
                                 llvm::opt::ArgStringList &CmdArgs) const;
+
+  /// isBitcodeOnlyTarget - Whether the toolchain has a coresponding backend
+  /// target.
+  virtual bool isBitcodeOnlyTarget() const { return false; }
 };
 
 } // end namespace driver

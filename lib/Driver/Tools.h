@@ -75,6 +75,8 @@ using llvm::opt::ArgStringList;
                           llvm::opt::ArgStringList &CmdArgs) const;
     void AddHexagonTargetArgs(const llvm::opt::ArgList &Args,
                               llvm::opt::ArgStringList &CmdArgs) const;
+    void AddLe32TargetArgs(const llvm::opt::ArgList &Args,
+                           llvm::opt::ArgStringList &CmdArgs) const;
 
     enum RewriteKind { RK_None, RK_Fragile, RK_NonFragile };
 
@@ -533,6 +535,22 @@ namespace nacltools {
                       const InputInfoList &Inputs,
                       const llvm::opt::ArgList &TCArgs,
                       const char *LinkingOutput) const override;
+  };
+}
+
+namespace pnacltools {
+  class LLVM_LIBRARY_VISIBILITY Link : public Tool  {
+  public:
+    Link(const ToolChain &TC) : Tool("PNaCl::Link", "linker", TC) {}
+
+    bool hasIntegratedCPP() const override { return false; }
+    bool isLinkJob() const override { return true; }
+
+    void ConstructJob(Compilation &C, const JobAction &JA,
+                              const InputInfo &Output,
+                              const InputInfoList &Inputs,
+                              const llvm::opt::ArgList &TCArgs,
+                              const char *LinkingOutput) const override;
   };
 }
 

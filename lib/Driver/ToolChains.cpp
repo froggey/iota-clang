@@ -3712,3 +3712,145 @@ void XCore::AddCXXStdlibLibArgs(const ArgList &Args,
                                 ArgStringList &CmdArgs) const {
   // We don't output any lib args. This is handled by xcc.
 }
+
+/// Generic_BC Toolchain
+
+Generic_BC::Generic_BC(const Driver &D, const llvm::Triple &Triple,
+                       const ArgList &Args)
+  : ToolChain(D, Triple, Args) {
+  getProgramPaths().push_back(getDriver().getInstalledDir());
+  if (getDriver().getInstalledDir() != getDriver().Dir)
+    getProgramPaths().push_back(getDriver().Dir);
+}
+
+/// PNaCl ToolChain
+
+PNaClToolChain::PNaClToolChain(const Driver &D, const llvm::Triple &Triple,
+                               const ArgList &Args)
+  : Generic_BC(D, Triple, Args) {
+  std::string SysRoot = computeSysRoot();
+
+  getFilePaths().push_back(SysRoot + "/lib");
+  getFilePaths().push_back(SysRoot + "/usr/lib");
+
+  getFilePaths().push_back(D.ResourceDir + "/lib/le32-nacl");
+}
+
+Tool *PNaClToolChain::buildLinker() const {
+  return new tools::pnacltools::Link(*this);
+}
+
+Tool *PNaClToolChain::buildAssembler() const {
+  llvm_unreachable("cannot build assembler");
+}
+
+std::string PNaClToolChain::computeSysRoot() const {
+  if (!getDriver().SysRoot.empty())
+    return getDriver().SysRoot;
+
+  return getDriver().Dir + "/../le32-nacl";
+}
+
+void PNaClToolChain::AddLinkRuntimeLibArgs(const ArgList &Args,
+                                           ArgStringList &CmdArgs) const {
+  CmdArgs.push_back("-lnacl");
+  CmdArgs.push_back("-lpnaclmm");
+}
+
+ToolChain::CXXStdlibType PNaClToolChain::GetCXXStdlibType(const ArgList &Args) const {
+  Arg *A = Args.getLastArg(options::OPT_stdlib_EQ);
+  if (!A)
+    return ToolChain::CST_Libcxx;
+
+  StringRef Value = A->getValue();
+  if (Value != "libc++") {
+    getDriver().Diag(diag::err_drv_invalid_stdlib_name)
+      << A->getAsString(Args);
+  }
+
+  return ToolChain::CST_Libcxx;
+}
+
+void PNaClToolChain::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
+                                               ArgStringList &CC1Args) const {
+  const Driver &D = getDriver();
+  std::string SysRoot = computeSysRoot();
+
+  if (DriverArgs.hasArg(options::OPT_nostdinc))
+    return;
+
+  if (!DriverArgs.hasArg(options::OPT_nobuiltininc)) {
+    SmallString<128> P(D.ResourceDir);
+    llvm::sys::path::append(P, "include");
+    addSystemInclude(DriverArgs, CC1Args, P.str());
+  }
+
+  if (DriverArgs.hasArg(options::OPT_nostdlibinc))
+    return;
+
+  // Check for configure-time C include directories.
+  StringRef CIncludeDirs(C_INCLUDE_DIRS);
+  if (CIncludeDirs != "") {
+    SmallVector<StringRef, 5> dirs;
+    CIncludeDirs.split(dirs, ":");
+    for (StringRef dir : dirs) {
+      StringRef Prefix =
+          llvm::sys::path::is_absolute(dir) ? StringRef(SysRoot) : "";
+      addExternCSystemInclude(DriverArgs, CC1Args, Prefix + dir);
+    }
+    return;
+  }
+
+  // Add an include of '/include' directly. This isn't provided by default by
+  // system GCCs, but is often used with cross-compiling GCCs, and harmless to
+  // add even when Clang is acting as-if it were a system compiler.
+  addExternCSystemInclude(DriverArgs, CC1Args, SysRoot + "/include");
+
+  addExternCSystemInclude(DriverArgs, CC1Args, SysRoot + "/usr/include");
+}
+
+void PNaClToolChain::AddClangCXXStdlibIncludeArgs(const ArgList &DriverArgs,
+                                                 ArgStringList &CC1Args) const {
+  if (DriverArgs.hasArg(options::OPT_nostdlibinc) ||
+      DriverArgs.hasArg(options::OPT_nostdincxx))
+    return;
+
+  // Check for -stdlib= flags. We only support libc++ but this consumes the arg
+  // if the value is libc++, and emits an error for other values.
+  GetCXXStdlibType(DriverArgs);
+
+  const std::string LibCXXIncludePathCandidates[] = {
+    // The primary location is within the Clang installation.
+    getDriver().Dir + "/../include/c++/v1",
+
+    // We also check the system as for a long time this is the only place Clang looked.
+    getDriver().SysRoot + "/usr/include/c++/v1"
+  };
+  for (const auto &IncludePath : LibCXXIncludePathCandidates) {
+    if (!llvm::sys::fs::exists(IncludePath))
+      continue;
+    // Add the first candidate that exists.
+    addSystemInclude(DriverArgs, CC1Args, IncludePath);
+    break;
+  }
+  return;
+}
+
+void PNaClToolChain::AddCXXStdlibLibArgs(const ArgList &Args,
+                                         ArgStringList &CmdArgs) const {
+  switch (GetCXXStdlibType(Args)) {
+  case ToolChain::CST_Libcxx:
+    CmdArgs.push_back("-lc++");
+    break;
+  case ToolChain::CST_Libstdcxx:
+    break;
+  }
+}
+
+void PNaClToolChain::addClangTargetOptions(const ArgList &DriverArgs,
+                                       ArgStringList &CC1Args) const {
+  if (DriverArgs.hasFlag(options::OPT_fuse_init_array,
+                         options::OPT_fno_use_init_array,
+                         getTriple().getOS() == llvm::Triple::NaCl))
+    CC1Args.push_back("-fuse-init-array");
+}

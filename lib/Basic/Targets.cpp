@@ -27,6 +27,7 @@
 #include "llvm/ADT/Triple.h"
 #include "llvm/MC/MCSectionMachO.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/TargetRegistry.h" // @LOCALMOD
 #include <algorithm>
 #include <memory>
 using namespace clang;
@@ -6489,6 +6490,12 @@ void PNaClTargetInfo::getGCCRegAliases(const GCCRegAlias *&Aliases,
   Aliases = nullptr;
   NumAliases = 0;
 }
+
+namespace {
+llvm::Target PNaClTarget;
+llvm::RegisterTarget<llvm::Triple::le32, /*HasJIT=*/false> P(
+    PNaClTarget, "le32", "PNaCl");
+} // end anonymous namespace.
 
 // We attempt to use PNaCl (le32) frontend and Mips32EL backend.
 class NaClMips32ELTargetInfo : public Mips32ELTargetInfo {

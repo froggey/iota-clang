@@ -757,6 +757,65 @@ private:
   std::string NaClArmMacrosPath;
 };
 
+class LLVM_LIBRARY_VISIBILITY Generic_BC : public ToolChain {
+public:
+  Generic_BC(const Driver &D, const llvm::Triple &Triple,
+             const llvm::opt::ArgList &Args);
+
+  bool HasNativeLLVMSupport() const override { return true; }
+
+  bool IsIntegratedAssemblerDefault() const override {  return true; }
+
+  bool isPICDefault() const override { return false; }
+  bool isPIEDefault() const override { return false; }
+  bool isPICDefaultForced() const override { return false; }
+
+  bool isBitcodeOnlyTarget() const override { return true; }
+};
+
+class LLVM_LIBRARY_VISIBILITY PNaClToolChain : public Generic_BC {
+public:
+  PNaClToolChain(const Driver &D, const llvm::Triple &Triple,
+                 const llvm::opt::ArgList &Args);
+
+  /// Add the linker arguments to link the compiler runtime library.
+  virtual void AddLinkRuntimeLibArgs(const llvm::opt::ArgList &Args,
+                                     llvm::opt::ArgStringList &CmdArgs) const;
+
+  CXXStdlibType GetCXXStdlibType(const llvm::opt::ArgList &Args) const override;
+
+  void
+  AddClangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs,
+                            llvm::opt::ArgStringList &CC1Args) const override;
+  void AddClangCXXStdlibIncludeArgs(
+      const llvm::opt::ArgList &DriverArgs,
+      llvm::opt::ArgStringList &CC1Args) const override;
+  void AddCXXStdlibLibArgs(const llvm::opt::ArgList &Args,
+                           llvm::opt::ArgStringList &CmdArgs) const override;
+
+  RuntimeLibType GetDefaultRuntimeLibType() const override {
+    return ToolChain::RLT_CompilerRT;
+  }
+
+  void addClangTargetOptions(const llvm::opt::ArgList &DriverArgs,
+                             llvm::opt::ArgStringList &CC1Args) const override;
+
+protected:
+  Tool *buildLinker() const override;
+  Tool *buildAssembler() const override;
+
+private:
+  static bool addLibStdCXXIncludePaths(Twine Base, Twine Suffix,
+                                       StringRef GCCTriple,
+                                       StringRef GCCMultiarchTriple,
+                                       StringRef TargetMultiarchTriple,
+                                       Twine IncludeSuffix,
+                                       const llvm::opt::ArgList &DriverArgs,
+                                       llvm::opt::ArgStringList &CC1Args);
+
+  std::string computeSysRoot() const;
+};
+
 /// TCEToolChain - A tool chain using the llvm bitcode tools to perform
 /// all subcommands. See http://tce.cs.tut.fi for our peculiar target.
 class LLVM_LIBRARY_VISIBILITY TCEToolChain : public ToolChain {

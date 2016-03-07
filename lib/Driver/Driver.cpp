@@ -1161,7 +1161,8 @@ void Driver::BuildActions(const ToolChain &TC, DerivedArgList &Args,
   Arg *FinalPhaseArg;
   phases::ID FinalPhase = getFinalPhase(Args, &FinalPhaseArg);
 
-  if (FinalPhase == phases::Link && Args.hasArg(options::OPT_emit_llvm)) {
+  if (FinalPhase == phases::Link && Args.hasArg(options::OPT_emit_llvm) &&
+      !TC.isBitcodeOnlyTarget()) {
     Diag(clang::diag::err_drv_emit_llvm_link);
   }
 
@@ -1266,6 +1267,10 @@ void Driver::BuildActions(const ToolChain &TC, DerivedArgList &Args,
         break;
       }
 
+      // Virtual targets don't perform assembly step.
+      if (Phase == phases::Assemble && TC.isBitcodeOnlyTarget())
+        continue;
+
       // Some types skip the assembler phase (e.g., llvm-bc), but we can't
       // encode this in the steps because the intermediate type depends on
       // arguments. Just special case here.
@@ -1364,7 +1369,7 @@ Driver::ConstructPhaseAction(const ToolChain &TC, const ArgList &Args,
         Args.hasArg(options::OPT_S) ? types::TY_LTO_IR : types::TY_LTO_BC;
       return llvm::make_unique<BackendJobAction>(std::move(Input), Output);
     }
-    if (Args.hasArg(options::OPT_emit_llvm)) {
+    if (Args.hasArg(options::OPT_emit_llvm) || TC.isBitcodeOnlyTarget()) {
       types::ID Output =
         Args.hasArg(options::OPT_S) ? types::TY_LLVM_IR : types::TY_LLVM_BC;
       return llvm::make_unique<BackendJobAction>(std::move(Input), Output);
@@ -2063,7 +2068,10 @@ const ToolChain &Driver::getToolChain(const ArgList &Args,
         TC = new toolchains::Linux(*this, Target, Args);
       break;
     case llvm::Triple::NaCl:
-      TC = new toolchains::NaCl_TC(*this, Target, Args);
+      if (Target.getArch() == llvm::Triple::le32)
+        TC = new toolchains::PNaClToolChain(*this, Target, Args);
+      else
+        TC = new toolchains::NaCl_TC(*this, Target, Args);
       break;
     case llvm::Triple::Solaris:
       TC = new toolchains::Solaris(*this, Target, Args);

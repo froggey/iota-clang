@@ -26,6 +26,9 @@
 /* Define if we have libxml2 */
 #undef CLANG_HAVE_LIBXML
 
+/* The shared library extension */
+#undef LTDL_SHLIB_EXT
+
 #undef PACKAGE_STRING
 
 /* The LLVM product name and version */
