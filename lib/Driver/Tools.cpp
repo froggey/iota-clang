@@ -1770,7 +1770,10 @@ void Clang::AddLe32TargetArgs(const ArgList &Args,
                               ArgStringList &CmdArgs) const {
   Args.ClaimAllArgs(options::OPT_emit_obj);
 
-  CmdArgs.push_back("-fno-gnu-inline-asm");
+  // -fno-gnu-inline-asm is default.
+  if (!Args.hasFlag(options::OPT_fgnu_inline_asm,
+                    options::OPT_fno_gnu_inline_asm, false))
+    CmdArgs.push_back("-fno-gnu-inline-asm");
 }
 
 // Decode AArch64 features from string like +[no]featureA+[no]featureB+...
