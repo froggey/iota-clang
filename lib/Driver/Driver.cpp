@@ -1364,12 +1364,12 @@ Driver::ConstructPhaseAction(const ToolChain &TC, const ArgList &Args,
                                                types::TY_LLVM_BC);
   }
   case phases::Backend: {
-    if (IsUsingLTO(TC, Args)) {
+    if (IsUsingLTO(TC, Args) || TC.isBitcodeOnlyTarget()) {
       types::ID Output =
         Args.hasArg(options::OPT_S) ? types::TY_LTO_IR : types::TY_LTO_BC;
       return llvm::make_unique<BackendJobAction>(std::move(Input), Output);
     }
-    if (Args.hasArg(options::OPT_emit_llvm) || TC.isBitcodeOnlyTarget()) {
+    if (Args.hasArg(options::OPT_emit_llvm)) {
       types::ID Output =
         Args.hasArg(options::OPT_S) ? types::TY_LLVM_IR : types::TY_LLVM_BC;
       return llvm::make_unique<BackendJobAction>(std::move(Input), Output);
