@@ -8223,9 +8223,14 @@ void pnacltools::Link::ConstructJob(Compilation &C, const JobAction &JA,
     CmdArgs.push_back(Args.MakeArgString("--sysroot=" + D.SysRoot));
 
   if (Arg *A = Args.getLastArg(options::OPT_shared,
-                               options::OPT_dynamic,
-                               options::OPT_rdynamic))
+                               options::OPT_dynamic))
     D.Diag(diag::err_drv_unsupported_opt) << A->getOption().getName();
+
+  // This option does not currently have any effect for bitcode linking,
+  // but we support it for backwards compatibility with the legacy driver
+  // and existing software packages.
+  if (Args.hasArg(options::OPT_rdynamic))
+    CmdArgs.push_back("-export-dynamic");
 
   std::string TripleStr = ToolChain.ComputeEffectiveClangTriple(Args);
   if (ToolChain.getArch() != llvm::Triple::le32)
