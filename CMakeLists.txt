@@ -167,10 +167,15 @@ else()
   set(BACKEND_PACKAGE_STRING "${PACKAGE_STRING}")
 endif()
 
-find_package(LibXml2)
-if (LIBXML2_FOUND)
-  set(CLANG_HAVE_LIBXML 1)
+# @LOCALMOD-BEGIN
+option(CLANG_ENABLE_LIBXML "Enable libXML" ON)
+if (CLANG_ENABLE_LIBXML)
+  find_package(LibXml2)
+  if (LIBXML2_FOUND)
+    set(CLANG_HAVE_LIBXML 1)
+  endif()
 endif()
+# @LOCALMOD-END
 
 set(CLANG_RESOURCE_DIR "" CACHE STRING
   "Relative directory from the Clang binary to its resource files.")
