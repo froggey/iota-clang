@@ -6746,6 +6746,78 @@ public:
 } // end anonymous namespace
 
 
+class IotaTargetInfo : public TargetInfo {
+public:
+  IotaTargetInfo(const llvm::Triple &Triple) : TargetInfo(Triple) {
+    assert(Triple.getArch() == llvm::Triple::le32);
+    BigEndian = false;
+    this->UserLabelPrefix = "";
+    this->LongAlign = 32;
+    this->LongWidth = 32;
+    this->PointerAlign = 32;
+    this->PointerWidth = 32;
+    this->IntMaxType = TargetInfo::SignedLongLong;
+    this->Int64Type = TargetInfo::SignedLongLong;
+    this->DoubleAlign = 64;
+    this->LongDoubleWidth = 64;
+    this->LongDoubleAlign = 64;
+    this->SizeType = TargetInfo::UnsignedInt;
+    this->PtrDiffType = TargetInfo::SignedInt;
+    this->IntPtrType = TargetInfo::SignedInt;
+    this->RegParmMax = 0; // Disallow regparm
+    this->DescriptionString = "e-p:32:32-i64:64-n32";
+  }
+
+  void getDefaultFeatures(llvm::StringMap<bool> &Features) const override {
+  }
+  void getTargetDefines(const LangOptions &Opts,
+                        MacroBuilder &Builder) const override {
+    Builder.defineMacro("__le32__");
+    Builder.defineMacro("__iota__");
+
+    if (Opts.POSIXThreads)
+      Builder.defineMacro("_REENTRANT");
+    if (Opts.CPlusPlus)
+      Builder.defineMacro("_GNU_SOURCE");
+
+    DefineStd(Builder, "unix", Opts);
+  }
+  bool hasFeature(StringRef Feature) const override {
+    return Feature == "itoa";
+  }
+  void getTargetBuiltins(const Builtin::Info *&Records,
+                         unsigned &NumRecords) const override {
+  }
+  BuiltinVaListKind getBuiltinVaListKind() const override {
+    return TargetInfo::PNaClABIBuiltinVaList;
+  }
+  void getGCCRegNames(const char * const *&Names,
+                      unsigned &NumNames) const override;
+  void getGCCRegAliases(const GCCRegAlias *&Aliases,
+                        unsigned &NumAliases) const override;
+  bool validateAsmConstraint(const char *&Name,
+                             TargetInfo::ConstraintInfo &Info) const override {
+    return false;
+  }
+
+  const char *getClobbers() const override {
+    return "";
+  }
+};
+
+void IotaTargetInfo::getGCCRegNames(const char * const *&Names,
+                                     unsigned &NumNames) const {
+  Names = nullptr;
+  NumNames = 0;
+}
+
+void IotaTargetInfo::getGCCRegAliases(const GCCRegAlias *&Aliases,
+                                       unsigned &NumAliases) const {
+  Aliases = nullptr;
+  NumAliases = 0;
+}
+
+
 //===----------------------------------------------------------------------===//
 // Driver code
 //===----------------------------------------------------------------------===//
@@ -6916,6 +6988,8 @@ static TargetInfo *AllocateTarget(const llvm::Triple &Triple) {
     switch (os) {
       case llvm::Triple::NaCl:
         return new NaClTargetInfo<PNaClTargetInfo>(Triple);
+      case llvm::Triple::Iota:
+        return new IotaTargetInfo(Triple);
       default:
         return nullptr;
     }

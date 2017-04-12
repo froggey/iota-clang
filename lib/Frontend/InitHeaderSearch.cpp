@@ -233,6 +233,7 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
     case llvm::Triple::OpenBSD:
     case llvm::Triple::Bitrig:
     case llvm::Triple::NaCl:
+    case llvm::Triple::Iota:
       break;
     default:
       // FIXME: temporary hack: hard-coded paths.
@@ -354,6 +355,7 @@ void InitHeaderSearch::AddDefaultCIncludePaths(const llvm::Triple &triple,
   case llvm::Triple::CloudABI:
   case llvm::Triple::RTEMS:
   case llvm::Triple::NaCl:
+  case llvm::Triple::Iota:
     break;
   default:
     AddPath("/usr/include", ExternCSystem, false);

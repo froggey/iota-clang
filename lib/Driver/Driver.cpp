@@ -2073,6 +2073,9 @@ const ToolChain &Driver::getToolChain(const ArgList &Args,
       else
         TC = new toolchains::NaCl_TC(*this, Target, Args);
       break;
+    case llvm::Triple::Iota:
+      TC = new toolchains::IotaToolChain(*this, Target, Args);
+      break;
     case llvm::Triple::Solaris:
       TC = new toolchains::Solaris(*this, Target, Args);
       break;
