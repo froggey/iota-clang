@@ -8383,6 +8383,66 @@ void pnacltools::Link::ConstructJob(Compilation &C, const JobAction &JA,
       llvm::make_unique<Command>(JA, *this, Args.MakeArgString(Linker), CmdArgs));
 }
 
+void iotatools::Link::ConstructJob(Compilation &C, const JobAction &JA,
+                                    const InputInfo &Output,
+                                    const InputInfoList &Inputs,
+                                    const ArgList &Args,
+                                    const char *LinkingOutput) const {
+  const toolchains::IotaToolChain& ToolChain =
+    static_cast<const toolchains::IotaToolChain&>(getToolChain());
+  const Driver &D = ToolChain.getDriver();
+
+  ArgStringList CmdArgs;
+
+  // Silence warning for "clang -g foo.o -o foo"
+  Args.ClaimAllArgs(options::OPT_g_Group);
+  // and "clang -emit-llvm foo.o -o foo"
+  Args.ClaimAllArgs(options::OPT_emit_llvm);
+  // and for "clang -w foo.o -o foo". Other warning options are already
+  // handled somewhere else.
+  Args.ClaimAllArgs(options::OPT_w);
+
+  if (Arg *A = Args.getLastArg(options::OPT_shared,
+                               options::OPT_dynamic))
+    D.Diag(diag::err_drv_unsupported_opt) << A->getOption().getName();
+
+  std::string TripleStr = ToolChain.ComputeEffectiveClangTriple(Args);
+  if (ToolChain.getArch() != llvm::Triple::le32)
+    D.Diag(diag::err_target_unsupported_arch) << ToolChain.getArchName()
+                                              << TripleStr;
+
+  CmdArgs.push_back("-o");
+  CmdArgs.push_back(Output.getFilename());
+
+  if (Args.hasArg(options::OPT_v))
+    CmdArgs.push_back("-v");
+
+  Args.AddAllArgs(CmdArgs, options::OPT_L);
+
+  const ToolChain::path_list &Paths = ToolChain.getFilePaths();
+
+  for (const auto &Path : Paths)
+    CmdArgs.push_back(Args.MakeArgString(StringRef("-L") + Path));
+
+  AddLinkerInputs(ToolChain, Inputs, Args, CmdArgs);
+
+  if (!Args.hasArg(options::OPT_nostdlib)) {
+    if (!Args.hasArg(options::OPT_nodefaultlibs)) {
+      CmdArgs.push_back("-lc");
+      CmdArgs.push_back("-lm");
+      ToolChain.AddLinkRuntimeLibArgs(Args, CmdArgs);
+
+      CmdArgs.push_back("-provided-symbols");
+      CmdArgs.push_back(Args.MakeArgString(
+                            getToolChain().GetFilePath("iota-provided-symbols")));
+    }
+  }
+
+  std::string Linker = ToolChain.GetProgramPath("iota");
+  C.addCommand(
+      llvm::make_unique<Command>(JA, *this, Args.MakeArgString(Linker), CmdArgs));
+}
+
 void minix::Assemble::ConstructJob(Compilation &C, const JobAction &JA,
                                    const InputInfo &Output,
                                    const InputInfoList &Inputs,

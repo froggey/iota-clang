@@ -3869,7 +3869,7 @@ IotaToolChain::IotaToolChain(const Driver &D, const llvm::Triple &Triple,
 }
 
 Tool *IotaToolChain::buildLinker() const {
-  llvm_unreachable("cannot build linker (no linker implemented for Iota!)");
+  return new tools::iotatools::Link(*this);
 }
 
 Tool *IotaToolChain::buildAssembler() const {
